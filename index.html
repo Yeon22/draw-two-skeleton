@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Line Skeleton with Three.js</title>
+    <style>
+      body {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.146.0/three.min.js"
+      integrity="sha512-Wft1v8e5sfJmolWfOyea3DBsf2qHZv6uBKLkvEYNSUo0wImWa9DYZH1lHU5y/UIfQu4xJ3xahqv1X4pvx3cv/w=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.138.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script src="./index.js"></script>
+    <script>
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xd0d0d0);
+      scene.fog = new THREE.Fog(0xd0d0d0, 10, 50);
+
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
+      hemiLight.position.set(0, 20, 0);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff);
+      dirLight.position.set(3, 10, 10);
+      // dirLight.castShadow = true;
+      dirLight.shadow.camera.top = 2;
+      dirLight.shadow.camera.bottom = -2;
+      dirLight.shadow.camera.left = -2;
+      dirLight.shadow.camera.right = 2;
+      dirLight.shadow.camera.near = 0.1;
+      dirLight.shadow.camera.far = 40;
+
+      const mesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(100, 100),
+        new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false })
+      );
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.receiveShadow = true;
+
+      const camera = new THREE.PerspectiveCamera(45, 1, 0.5, 100);
+      camera.position.set(3.5, 0.7, 0.5);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio / 2);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.outputEncoding = THREE.sRGBEncoding;
+      renderer.shadowMap.enabled = true;
+
+      const skeletonCanvas = new THREE.Object3D();
+      const ReflectionVector = new THREE.Vector3(0.01, 0.01, 0.01);
+      const aihubVectors = {
+        Nose: new THREE.Vector3(
+          aihub["Nose"].x,
+          aihub["Nose"].y,
+          aihub["Nose"].z
+        ).multiply(ReflectionVector),
+        Neck: new THREE.Vector3(
+          aihub["Neck"].x,
+          aihub["Neck"].y,
+          aihub["Neck"].z
+        ).multiply(ReflectionVector),
+        "Left Eye": new THREE.Vector3(
+          aihub["Left Eye"].x,
+          aihub["Left Eye"].y,
+          aihub["Left Eye"].z
+        ).multiply(ReflectionVector),
+        "Left Ear": new THREE.Vector3(
+          aihub["Left Ear"].x,
+          aihub["Left Ear"].y,
+          aihub["Left Ear"].z
+        ).multiply(ReflectionVector),
+        "Left Shoulder": new THREE.Vector3(
+          aihub["Left Shoulder"].x,
+          aihub["Left Shoulder"].y,
+          aihub["Left Shoulder"].z
+        ).multiply(ReflectionVector),
+        "Left Hip": new THREE.Vector3(
+          aihub["Left Hip"].x,
+          aihub["Left Hip"].y,
+          aihub["Left Hip"].z
+        ).multiply(ReflectionVector),
+        "Left Knee": new THREE.Vector3(
+          aihub["Left Knee"].x,
+          aihub["Left Knee"].y,
+          aihub["Left Knee"].z
+        ).multiply(ReflectionVector),
+        "Left Ankle": new THREE.Vector3(
+          aihub["Left Ankle"].x,
+          aihub["Left Ankle"].y,
+          aihub["Left Ankle"].z
+        ).multiply(ReflectionVector),
+        "Left Elbow": new THREE.Vector3(
+          aihub["Left Elbow"].x,
+          aihub["Left Elbow"].y,
+          aihub["Left Elbow"].z
+        ).multiply(ReflectionVector),
+        "Left Wrist": new THREE.Vector3(
+          aihub["Left Wrist"].x,
+          aihub["Left Wrist"].y,
+          aihub["Left Wrist"].z
+        ).multiply(ReflectionVector),
+        "Right Eye": new THREE.Vector3(
+          aihub["Right Eye"].x,
+          aihub["Right Eye"].y,
+          aihub["Right Eye"].z
+        ).multiply(ReflectionVector),
+        "Right Ear": new THREE.Vector3(
+          aihub["Right Ear"].x,
+          aihub["Right Ear"].y,
+          aihub["Right Ear"].z
+        ).multiply(ReflectionVector),
+        "Right Shoulder": new THREE.Vector3(
+          aihub["Right Shoulder"].x,
+          aihub["Right Shoulder"].y,
+          aihub["Right Shoulder"].z
+        ).multiply(ReflectionVector),
+        "Right Hip": new THREE.Vector3(
+          aihub["Right Hip"].x,
+          aihub["Right Hip"].y,
+          aihub["Right Hip"].z
+        ).multiply(ReflectionVector),
+        "Right Knee": new THREE.Vector3(
+          aihub["Right Knee"].x,
+          aihub["Right Knee"].y,
+          aihub["Right Knee"].z
+        ).multiply(ReflectionVector),
+        "Right Ankle": new THREE.Vector3(
+          aihub["Right Ankle"].x,
+          aihub["Right Ankle"].y,
+          aihub["Right Ankle"].z
+        ).multiply(ReflectionVector),
+        "Right Elbow": new THREE.Vector3(
+          aihub["Right Elbow"].x,
+          aihub["Right Elbow"].y,
+          aihub["Right Elbow"].z
+        ).multiply(ReflectionVector),
+        "Right Wrist": new THREE.Vector3(
+          aihub["Right Wrist"].x,
+          aihub["Right Wrist"].y,
+          aihub["Right Wrist"].z
+        ).multiply(ReflectionVector),
+      };
+      const blazeVectors = {
+        nose: new THREE.Vector3(
+          getBlaze("nose").x,
+          getBlaze("nose").y,
+          getBlaze("nose").z
+        ).multiply(ReflectionVector),
+        leftEye: new THREE.Vector3(
+          getBlaze("leftEye").x,
+          getBlaze("leftEye").y,
+          getBlaze("leftEye").z
+        ).multiply(ReflectionVector),
+        rightEye: new THREE.Vector3(
+          getBlaze("rightEye").x,
+          getBlaze("rightEye").y,
+          getBlaze("rightEye").z
+        ).multiply(ReflectionVector),
+        leftShoulder: new THREE.Vector3(
+          getBlaze("leftShoulder").x,
+          getBlaze("leftShoulder").y,
+          getBlaze("leftShoulder").z
+        ).multiply(ReflectionVector),
+        rightShoulder: new THREE.Vector3(
+          getBlaze("rightShoulder").x,
+          getBlaze("rightShoulder").y,
+          getBlaze("rightShoulder").z
+        ).multiply(ReflectionVector),
+        leftElbow: new THREE.Vector3(
+          getBlaze("leftElbow").x,
+          getBlaze("leftElbow").y,
+          getBlaze("leftElbow").z
+        ).multiply(ReflectionVector),
+        rightElbow: new THREE.Vector3(
+          getBlaze("rightElbow").x,
+          getBlaze("rightElbow").y,
+          getBlaze("rightElbow").z
+        ).multiply(ReflectionVector),
+        leftWrist: new THREE.Vector3(
+          getBlaze("leftWrist").x,
+          getBlaze("leftWrist").y,
+          getBlaze("leftWrist").z
+        ).multiply(ReflectionVector),
+        rightWrist: new THREE.Vector3(
+          getBlaze("rightWrist").x,
+          getBlaze("rightWrist").y,
+          getBlaze("rightWrist").z
+        ).multiply(ReflectionVector),
+        leftHip: new THREE.Vector3(
+          getBlaze("leftHip").x,
+          getBlaze("leftHip").y,
+          getBlaze("leftHip").z
+        ).multiply(ReflectionVector),
+        rightHip: new THREE.Vector3(
+          getBlaze("rightHip").x,
+          getBlaze("rightHip").y,
+          getBlaze("rightHip").z
+        ).multiply(ReflectionVector),
+        leftKnee: new THREE.Vector3(
+          getBlaze("leftKnee").x,
+          getBlaze("leftKnee").y,
+          getBlaze("leftKnee").z
+        ).multiply(ReflectionVector),
+        rightKnee: new THREE.Vector3(
+          getBlaze("rightKnee").x,
+          getBlaze("rightKnee").y,
+          getBlaze("rightKnee").z
+        ).multiply(ReflectionVector),
+        leftAnkle: new THREE.Vector3(
+          getBlaze("leftAnkle").x,
+          getBlaze("leftAnkle").y,
+          getBlaze("leftAnkle").z
+        ).multiply(ReflectionVector),
+        rightAnkle: new THREE.Vector3(
+          getBlaze("rightAnkle").x,
+          getBlaze("rightAnkle").y,
+          getBlaze("rightAnkle").z
+        ).multiply(ReflectionVector),
+      };
+
+      const red = new THREE.LineBasicMaterial({ color: 0xff0000 });
+      const blue = new THREE.LineBasicMaterial({ color: 0x0000ff });
+      const green = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+
+      const drawLine = (scene, points, material) => {
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const line = new THREE.Line(geometry, material);
+        scene.add(line);
+      };
+      const drawLines = (scene, pointGroups, material) => {
+        for (const points of pointGroups) {
+          drawLine(scene, points, material);
+        }
+      };
+
+      const drawGuide = (scene) => {
+        drawLine(
+          scene,
+          [new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 0, 0)],
+          red
+        );
+        drawLine(
+          scene,
+          [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0)],
+          green
+        );
+        drawLine(
+          scene,
+          [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 1)],
+          blue
+        );
+      };
+      drawGuide(skeletonCanvas);
+
+      const aihubMaterial = new THREE.LineBasicMaterial({
+        color: 0xff0000,
+      });
+      drawLines(
+        skeletonCanvas,
+        [
+          [
+            aihubVectors["Left Ear"],
+            aihubVectors["Left Eye"],
+            aihubVectors["Nose"],
+            aihubVectors["Right Eye"],
+            aihubVectors["Right Ear"],
+          ],
+          [
+            aihubVectors["Nose"],
+            aihubVectors["Neck"],
+            aihubVectors["Left Shoulder"],
+            aihubVectors["Left Elbow"],
+            aihubVectors["Left Wrist"],
+          ],
+          [
+            aihubVectors["Nose"],
+            aihubVectors["Neck"],
+            aihubVectors["Right Shoulder"],
+            aihubVectors["Right Elbow"],
+            aihubVectors["Right Wrist"],
+          ],
+          [aihubVectors["Left Hip"], aihubVectors["Right Hip"]],
+          [
+            aihubVectors["Left Shoulder"],
+            aihubVectors["Left Hip"],
+            aihubVectors["Left Knee"],
+          ],
+          [
+            aihubVectors["Right Shoulder"],
+            aihubVectors["Right Hip"],
+            aihubVectors["Right Knee"],
+          ],
+          [aihubVectors["Left Knee"], aihubVectors["Left Ankle"]],
+          [aihubVectors["Right Knee"], aihubVectors["Right Ankle"]],
+        ],
+        aihubMaterial
+      );
+
+      const blazeMaterial = new THREE.LineBasicMaterial({
+        color: 0x0000ff,
+      });
+      drawLines(
+        skeletonCanvas,
+        [
+          [blazeVectors.leftEye, blazeVectors.nose, blazeVectors.rightEye],
+          [
+            blazeVectors.leftShoulder,
+            blazeVectors.leftElbow,
+            blazeVectors.leftWrist,
+          ],
+          [blazeVectors.leftShoulder, blazeVectors.rightShoulder],
+          [
+            blazeVectors.rightShoulder,
+            blazeVectors.rightElbow,
+            blazeVectors.rightWrist,
+          ],
+          [
+            blazeVectors.leftShoulder,
+            blazeVectors.leftHip,
+            blazeVectors.leftKnee,
+            blazeVectors.leftAnkle,
+          ],
+          [
+            blazeVectors.rightShoulder,
+            blazeVectors.rightHip,
+            blazeVectors.rightKnee,
+            blazeVectors.rightAnkle,
+          ],
+          [blazeVectors.leftHip, blazeVectors.rightHip],
+        ],
+        blazeMaterial
+      );
+
+      scene.add(camera);
+      scene.add(hemiLight);
+      scene.add(dirLight);
+      scene.add(mesh);
+      scene.add(skeletonCanvas);
+
+      document.body.appendChild(renderer.domElement);
+
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enablePan = false;
+      controls.enableZoom = true;
+      controls.target.set(0, 1, 0);
+      controls.update();
+
+      function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      }
+
+      animate();
+    </script>
+  </body>
+</html>
