@@ -257,6 +257,14 @@
         );
       };
       drawGuide(skeletonCanvas);
+      drawLine(
+        skeletonCanvas,
+        [
+          new THREE.Vector3(0, 0, 0),
+          new THREE.Vector3(crossV.x, crossV.y, crossV.z),
+        ],
+        green
+      );
 
       const aihubMaterial = new THREE.LineBasicMaterial({
         color: 0xff0000,

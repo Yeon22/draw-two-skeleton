@@ -350,18 +350,30 @@ const matchCenter = () => {
 };
 matchCenter();
 
-const rotate = () => {
-  const aihubVector = getDiff(aihub["Left Shoulder"], aihubCenter);
-  const blazeVector = getDiff(getBlaze("leftShoulder"), blazeCenter);
-  const aihubV = new THREE.Vector3(aihubVector.x, aihubVector.y, aihubVector.z);
-  const blazeV = new THREE.Vector3(blazeVector.x, blazeVector.y, blazeVector.z);
-  const crossV = new THREE.Vector3().crossVectors(aihubV, blazeV).normalize();
-  const angle = (aihubV.angleTo(blazeV) * 180) / Math.PI;
-  console.log("angle", angle);
+let aihubVector = getDiff(aihub["Left Shoulder"], aihubCenter);
+let blazeVector = getDiff(getBlaze("leftShoulder"), blazeCenter);
+let aihubV = new THREE.Vector3(aihubVector.x, aihubVector.y, aihubVector.z);
+let blazeV = new THREE.Vector3(blazeVector.x, blazeVector.y, blazeVector.z);
+let crossV = new THREE.Vector3().crossVectors(aihubV, blazeV).normalize();
+let angle = (aihubV.angleTo(blazeV) * 180) / Math.PI;
+console.log("angle", angle);
 
-  const quaternion = new THREE.Quaternion();
-  quaternion.setFromAxisAngle(crossV, angle);
+const quaternion = new THREE.Quaternion();
+quaternion.setFromAxisAngle(crossV, angle);
 
+blaze = blaze.map((item) => {
+  const itemVector = new THREE.Vector3(item.x, item.y, item.z);
+  const applied = itemVector.applyQuaternion(quaternion);
+  return { name: item.name, x: applied.x, y: applied.y, z: applied.z };
+});
+
+const rotateByAxis = (angle, ax = "x") => {
+  const axis = {
+    x: new THREE.Vector3(1, 0, 0),
+    y: new THREE.Vector3(0, 1, 0),
+    z: new THREE.Vector3(0, 0, 1),
+  };
+  quaternion.setFromAxisAngle(axis[ax], angle);
   blaze = blaze.map((item) => {
     const itemVector = new THREE.Vector3(item.x, item.y, item.z);
     const applied = itemVector.applyQuaternion(quaternion);
@@ -369,9 +381,19 @@ const rotate = () => {
   });
 };
 
-// rotate();
-// matchCenter();
+rotateByAxis(70, "y");
+rotateByAxis(33, "z");
+matchCenter();
 
 // pck 계산
-// const pck = getDistance(aihub["Left Shoulder"], aihub["Right Hip"]) * 0.2;
-// console.log("pck", pck);
+const pck = getDistance(aihub["Left Shoulder"], aihub["Right Hip"]) * 0.2;
+console.log("pck", pck);
+
+console.log(
+  "최종 left shoulder 거리",
+  getDistance(aihub["Left Shoulder"], getBlaze("leftShoulder"))
+);
+console.log(
+  "최종 left iip 거리",
+  getDistance(aihub["Left Hip"], getBlaze("leftHip"))
+);
